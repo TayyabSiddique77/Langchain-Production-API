@@ -5,7 +5,7 @@ services:
     region: singapore
     plan: free
     build command: pip install uv && uv sync --frozen --no-dev
-    start command: uv run uvicorn app.main:app --host 0.0.0.0 --port $port
+    start command: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envvars:
      - key: PYTHON_VERSION
        value: "3.12.7"
