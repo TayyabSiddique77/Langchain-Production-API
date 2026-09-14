@@ -1,0 +1,18 @@
+
+.env
+# python
+__pycache__/
+.pytest_cache/
+*.pyc 
+*.pyo 
+.venv/
+myenv/
+venv/
+
+#IDE
+.vscode
+.idea/
+
+#OS
+.DS_Store
+Thumbs.db

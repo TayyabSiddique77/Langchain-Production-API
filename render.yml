@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: production-langgraph-api
+    runtime: python
+    region: oregon
+    plan: free
+    build command: pip install uv && uv sync --frozen --no-dev
+    start command: uv run uvicorn app.main:app --host 0.0.0.0 --port $port
+    envvars:
+     - key: PYTHON_VERSION
+       value: "3.12.7"
+     - key: APP_ENV
+       value: production
+     - key: LOG_LEVEL
+       value: INFO
+     - key: RATE_LIMIT
+       value: "20/minute"
+     - key: CACHE_TTL_SECONDS
+       value: "300"
+     - key: MAX_RETRIES
+       value: "3"
+     - key: PRIMARY_MODEL
+       value: openai/gpt-oss-120b
+     - key: FALLBACK_MODEL
+       value: gemini-3.8-flash
+     - key: OPEN_API_KEY
+       sync: false 
+     - key: LANGCHAIN_TRACING_V2
+       value: "true"
+     - key: LANGCHAIN_API_KEY
+       sync: false
+     - key: LANGCHAIN_PROJECT
+       value: production-api
+    healthCheckPath: /health
+    autoDeploy: true
+
+
+
