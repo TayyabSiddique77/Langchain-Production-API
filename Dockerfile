@@ -1,32 +1,36 @@
-FROM  python:3.12-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Create non-root user early so we can own /app
-RUN useradd --create-home appuser && chown appuser:appuser /app
+# Install curl for health check
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install uv (fast python package manager)
+# Create non-root user
+RUN useradd --create-home appuser && chown -R appuser:appuser /app
+
+# Install uv
 RUN pip install uv
 
-# Copy dependency files first (Docker layer caching)
+# Copy dependency files first for Docker layer caching
 COPY --chown=appuser:appuser pyproject.toml .
-COPY --chown=appuser:appuser uv.lock* .
+COPY --chown=appuser:appuser uv.lock .
 
-# Switch to non-root user before installing deps (so myenv is owned by appuser)
+# Switch to non-root user
 USER appuser
 
-# Install dependencies
-RUN uv sync --frozen --no-dev
+# Install dependencies, but don't install this project as a package
+RUN uv sync --frozen --no-dev --no-install-project
 
 # Copy application code
-COPY --chown=appuser:appuser app/ /app/
+COPY --chown=appuser:appuser app/ /app/app/
 
-# Expose port 
 EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
-# Run with uvicorn
-CMD ["uv", "run", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run FastAPI
+CMD ["/app/.venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
